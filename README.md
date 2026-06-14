@@ -17,6 +17,6 @@ cd E425_ProjekatMitnop
 pip install -r requirements.txt  
 spyder
   
-#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop  
-#PRVO POKRENUTI jovan.py     
-#onda mogu da se pokrenut marina.py i ilija.py  
+#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop    
+#BITNO PRVO POKRENUTI jovan.py       
+#onda mogu da se pokrenut marina.py i ilija.py    
