@@ -2,8 +2,8 @@
 https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz
 
 #Ako ste preko zipa
-#unzipujte E425.zip
-#udjite u E425 gde se nalazi E425_ProjekatMitnop u kome je projekat
+#unzipujte E425zip.zip
+#udjite u E425zip gde se nalazi E425_ProjekatMitnop u kome je projekat
 
 #Ako idete preko githuba onda:
 git clone https://github.com/Yovan56/E425_ProjekatMitnop.git
@@ -25,4 +25,5 @@ spyder
 #iz files tab-a selektovati i pokretati .py po redu:
 #BITNO PRVO POKRENUTI jovan.py
 #onda mogu da se pokrenu marina.py i ilija.py
+
 
