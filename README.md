@@ -1,1 +1,16 @@
 # ProjekatMitnop
+#Idi te na sledeci link da bi skinuli potrebne podatke:
+https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz
+#u terminalu uraditi( ili skinuti direktno zip sa githuba)
+git clone https://github.com/Yovan56/E425_ProjekatMitnop.git
+#onda
+py -m venv E425_ProjekatMitnop
+#premesti te se u folder 
+cd E425_ProjekatMitnop
+./Scripts/Activate.ps1
+pip install -r requirements.txt
+spyder
+#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop
+#PRVO POKRENUTI jovan.py 
+#note jovan.py
+#onda mogu da se pokrenut marina.py i ilija.py
