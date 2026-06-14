@@ -6,7 +6,7 @@ https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz
 git clone https://github.com/Yovan56/E425_ProjekatMitnop.git  
 
  
-#ako ste skinuli preko zipa. kad ga unzipujete samo udjite u unziped folder i preimenujte folder #unutra u E425_ProjekatMitnop-main umesto E425_ProjekatMitnop:  
+#ako ste skinuli preko zipa. kad ga unzipujete samo udjite u unziped folder koristite E425_ProjekatMitnop-main umesto E425_ProjekatMitnop:    
 py -m venv E425_ProjekatMitnop  
 
 #premestite se u folder:  
@@ -19,7 +19,7 @@ cd E425_ProjekatMitnop
 pip install -r requirements.txt  
 spyder
   
-#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop
-#pokretati .py po redu:
+#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop  
+#pokretati .py po redu:  
 #BITNO PRVO POKRENUTI jovan.py       
 #onda mogu da se pokrenu marina.py i ilija.py    
