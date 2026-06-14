@@ -12,7 +12,7 @@ py -m venv E425_ProjekatMitnop
 #premesti te se u folder  
 cd E425_ProjekatMitnop  
 
-#onda
+#onda  
 ./Scripts/Activate.ps1  
 pip install -r requirements.txt  
 spyder
