@@ -20,6 +20,6 @@ pip install -r requirements.txt
 spyder
   
 #namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop  
-#pokretati .py po redu:  
+#iz files tab-a selektovati i pokretati .py po redu:  
 #**BITNO PRVO POKRENUTI** jovan.py       
 #onda mogu da se pokrenu marina.py i ilija.py    
