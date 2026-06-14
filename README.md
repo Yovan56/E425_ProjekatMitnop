@@ -21,5 +21,5 @@ spyder
   
 #namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop  
 #pokretati .py po redu:  
-#BITNO PRVO POKRENUTI jovan.py       
+#**BITNO PRVO POKRENUTI** jovan.py       
 #onda mogu da se pokrenu marina.py i ilija.py    
