@@ -11,12 +11,14 @@ py -m venv E425_ProjekatMitnop
 
 #premesti te se u folder  
 cd E425_ProjekatMitnop  
+#staviti u ovaj folder en.openfoodfacts.org.products.csv.gz fajl koji ste skinuli gde se nalaze ostali .py  
 
 #onda  
 ./Scripts/Activate.ps1  
 pip install -r requirements.txt  
 spyder
   
-#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop    
+#namestiti u folder u spyderu da se nalazi u E425_ProjekatMitnop
+#pokretati .py po redu:
 #BITNO PRVO POKRENUTI jovan.py       
-#onda mogu da se pokrenut marina.py i ilija.py    
+#onda mogu da se pokrenu marina.py i ilija.py    
