@@ -1,5 +1,5 @@
 #%%
-
+#Uklanjanje ne validnih vrednosti I LOF(Local Outlier Factor) i IF(Isolation Forrest)
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,8 +19,6 @@ cols = [
 
 #url = 'https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz'
 
-#df = pd.read_csv( "en.openfoodfacts.org.products.csv.gz", sep='\t', usecols=lambda c: c in cols, low_memory=False, on_bad_lines='skip')
-#df = pd.read_csv( "en.openfoodfacts.org.products.csv.gz", sep='\t', usecols=lambda c: c in cols, nrows=100000, low_memory=False, on_bad_lines='skip')
 reader = pd.read_csv("en.openfoodfacts.org.products.csv.gz", sep='\t', usecols=lambda c: c in cols, low_memory=False, on_bad_lines='skip', chunksize=200_000)
 
 
@@ -58,14 +56,12 @@ for col in nutrient_cols:
         df = df[(df[col] >= 0) & (df[col] <= 900)]
     else:
         df = df[(df[col] >= 0) & (df[col] <= 100)]
-# saturated fat cannot exceed total fat
+
 df = df[df['saturated-fat_100g'] <= df['fat_100g']]
 
-# sugars cannot exceed carbohydrates
+
 df = df[df['sugars_100g'] <= df['carbohydrates_100g']]
 
-# sum of macros cannot exceed 100g
-#macro_cols = ['fat_100g', 'carbohydrates_100g', 'proteins_100g', 'salt_100g']
 macro_cols = ['fat_100g', 'carbohydrates_100g', 'proteins_100g', 'salt_100g', 'fiber_100g']
 
 df = df[df[macro_cols].sum(axis=1) <= 100]
@@ -91,12 +87,10 @@ df['fat_protein_ratio'] = df['fat_protein_ratio'].replace([np.inf, -np.inf], np.
 df['sugar_fiber_ratio'] = df['sugar_fiber_ratio'].fillna(df['sugar_fiber_ratio'].median())
 df['fat_protein_ratio'] = df['fat_protein_ratio'].fillna(df['fat_protein_ratio'].median())
 
-print("sugar_fiber_ratio")
-print(df['sugar_fiber_ratio'].describe())
+
 print(df['sugar_fiber_ratio'].quantile([0.90, 0.95, 0.99]))
 
-print("\nfat_protein_ratio")
-print(df['fat_protein_ratio'].describe())
+
 print(df['fat_protein_ratio'].quantile([0.90, 0.95, 0.99]))
 
 
@@ -106,8 +100,8 @@ fat_cap = df['fat_protein_ratio'].quantile(0.95)
 df['sugar_fiber_ratio'] = df['sugar_fiber_ratio'].clip(upper=sugar_cap)
 df['fat_protein_ratio'] = df['fat_protein_ratio'].clip(upper=fat_cap)
 
-print(f"\nsugar_fiber_ratio capped at: {sugar_cap:.2f}")
-print(f"fat_protein_ratio capped at: {fat_cap:.2f}")
+print(f"\nsugar_fiber_ratio ogranicen: {sugar_cap:.2f}")
+print(f"fat_protein_ratio ogranicen: {fat_cap:.2f}")
 #%%
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
@@ -169,14 +163,8 @@ df['both_anomaly'] = (df['iso_anomaly'] == -1) & (df['lof_anomaly'] == -1)
 print(f"\nOba modela se slažu: {df['both_anomaly'].sum()} proizvoda")
 print(df[df['both_anomaly']].groupby('nutriscore_grade').size().rename('broj'))
 
-print("\nProsečna nova_group: anomalije vs normalni po nutriscore oceni")
-for col, label in [('iso_anomaly', 'Isolation Forest'), ('lof_anomaly', 'LOF')]:
-    print(f"\n{label}:")
-    df['anomaly_label'] = df[col].map({1: 'Normalni', -1: 'Anomalija'})
-    ct = pd.crosstab(df['nutriscore_grade'], df['anomaly_label'],
-                     values=df['nova_group'],
-                     aggfunc='mean').round(2)
-    print(ct)
+
+
 
 print("\nUzorci anomalija po nutriscore oceni")
 iso_scores = iso.decision_function(X_scaled)
@@ -211,7 +199,7 @@ df_clean.to_csv('open_food_facts_clean.csv', index=False)
 print("Sacuvano: open_food_facts_clean.csv")
 
 #%%
-fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+fig, axes = plt.subplots(1, 2, figsize=(16, 5))
 
 grades = ['a', 'b', 'c', 'd', 'e']
 iso_rates = [df[df['nutriscore_grade']==g]['iso_anomaly'].apply(lambda x: x==-1).mean()*100 for g in grades]
@@ -227,6 +215,8 @@ axes[0].legend()
 axes[0].grid(axis='y', alpha=0.2)
 axes[0].spines[['top','right']].set_visible(False)
 
+
+
 axes[1].hist(df[df['iso_anomaly']==1]['iso_score'], bins=50, color='#5DCAA5', alpha=0.7, label='Normalni', density=True)
 axes[1].hist(df[df['iso_anomaly']==-1]['iso_score'], bins=50, color='#A32D2D', alpha=0.7, label='Anomalije', density=True)
 axes[1].axvline(0, color='black', linestyle='--', linewidth=1)
@@ -236,16 +226,7 @@ axes[1].legend()
 axes[1].grid(axis='y', alpha=0.2)
 axes[1].spines[['top','right']].set_visible(False)
 
-anomaly_nova = df[df['iso_anomaly']==-1].groupby('nutriscore_grade')['nova_group'].mean()
-normal_nova = df[df['iso_anomaly']==1].groupby('nutriscore_grade')['nova_group'].mean()
-axes[2].plot([g.upper() for g in grades], [normal_nova.get(g, 0) for g in grades], 'o-', color='#5DCAA5', label='Normalni', linewidth=2)
-axes[2].plot([g.upper() for g in grades], [anomaly_nova.get(g, 0) for g in grades], 'o-', color='#A32D2D', label='Anomalije', linewidth=2)
-axes[2].set_title('Prosečna NOVA grupa po oceni', fontsize=13)
-axes[2].set_ylabel('NOVA grupa')
-axes[2].set_ylim(1, 4)
-axes[2].legend()
-axes[2].grid(axis='y', alpha=0.2)
-axes[2].spines[['top','right']].set_visible(False)
+
 
 plt.tight_layout()
 plt.savefig('anomalije_analiza.png', dpi=150, bbox_inches='tight')
@@ -254,38 +235,45 @@ plt.show()
 
 #%%
 fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-fig.patch.set_facecolor('white')
-
-grade_colors = ['#1D9E75','#5DCAA5','#EF9F27','#D85A30','#A32D2D']
 nova_colors = ['#185FA5','#378ADD','#85B7EB','#B5D4F4']
-
-counts = df_clean['nutriscore_grade'].value_counts().sort_index()
-axes[0,0].bar(counts.index, counts.values, color=grade_colors, width=0.6)
-axes[0,0].set_title('Nutri-Score ocene', fontsize=13, pad=10)
+df_clean['nutriscore_grade'].value_counts().sort_index().plot(kind='bar', ax=axes[0,0], color='steelblue')
+axes[0,0].set_title('Distribucija Nutri-Score ocena')
+axes[0,0].set_xlabel('Nutri-Score')
 axes[0,0].set_ylabel('Broj proizvoda')
-axes[0,0].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x/1000:.0f}k'))
-axes[0,0].grid(axis='y', alpha=0.2)
-axes[0,0].spines[['top','right']].set_visible(False)
 
-nova_counts = df_clean['nova_group'].value_counts().sort_index()
-axes[0,1].bar(nova_counts.index.astype(str), nova_counts.values, color=nova_colors, width=0.6)
-axes[0,1].set_title('NOVA grupe', fontsize=13, pad=10)
+df_clean['nova_group'].value_counts().sort_index().plot(kind='bar', ax=axes[0,1], color='coral')
+axes[0,1].set_title('Distribucija NOVA grupa')
+axes[0,1].set_xlabel('NOVA grupa')
 axes[0,1].set_ylabel('Broj proizvoda')
-axes[0,1].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x/1000:.0f}k'))
-axes[0,1].grid(axis='y', alpha=0.2)
-axes[0,1].spines[['top','right']].set_visible(False)
 
-axes[1,0].hist(df_clean['energy-kcal_100g'], bins=40, color='#5DCAA5', edgecolor='none', rwidth=0.95)
-axes[1,0].set_title('Kalorije (kcal/100g)', fontsize=13, pad=10)
-axes[1,0].set_xlabel('kcal/100g')
-axes[1,0].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x/1000:.0f}k'))
+nova_additives = df_clean.groupby('nova_group')['additives_n'].mean()
+axes[1,0].bar(nova_additives.index, nova_additives.values, color=nova_colors, width=0.6)
+axes[1,0].set_title('Prosečan broj aditiva po NOVA grupi', fontsize=13)
+axes[1,0].set_xlabel('NOVA grupa')
+axes[1,0].set_ylabel('Prosečan broj aditiva')
 axes[1,0].grid(axis='y', alpha=0.2)
 axes[1,0].spines[['top','right']].set_visible(False)
 
-axes[1,1].hist(df_clean['additives_n'], bins=20, color='#7F77DD', edgecolor='none', rwidth=0.85)
-axes[1,1].set_title('Broj aditiva po proizvodu', fontsize=13, pad=10)
-axes[1,1].set_xlabel('Broj aditiva')
-axes[1,1].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x/1000:.0f}k'))
+
+nova_dist = df_clean.groupby(['nutriscore_grade', 'nova_group']).size().unstack(fill_value=0)
+nova_dist_pct = nova_dist.div(nova_dist.sum(axis=1), axis=0) * 100
+
+bottom = np.zeros(len(nova_dist_pct))
+for i, nova in enumerate(nova_dist_pct.columns):
+    axes[1,1].bar(
+        [g.upper() for g in nova_dist_pct.index],
+        nova_dist_pct[nova],
+        bottom=bottom,
+        color=nova_colors[i],
+        label=f'NOVA {nova}',
+        width=0.6
+    )
+    bottom += nova_dist_pct[nova].values
+
+axes[1,1].set_title('Udeo NOVA grupa po Nutri-Score oceni', fontsize=13)
+axes[1,1].set_xlabel('Nutri-Score')
+axes[1,1].set_ylabel('%')
+axes[1,1].legend(loc='upper right', fontsize=8)
 axes[1,1].grid(axis='y', alpha=0.2)
 axes[1,1].spines[['top','right']].set_visible(False)
 
