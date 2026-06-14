@@ -45,7 +45,6 @@ for chunk in reader:
     chunk['nutriscore_grade'] = chunk['nutriscore_grade'].str.lower()
     chunk = chunk[chunk['nova_group'].isin([1.0, 2.0, 3.0, 4.0])]
     chunk['nova_group'] = chunk['nova_group'].astype(int)
-    chunk = chunk[chunk['energy-kcal_100g'] <= 900]
     chunks.append(chunk)
 
 df = pd.concat(chunks, ignore_index=True)
@@ -210,12 +209,7 @@ print(len(df_clean))
 print("Finalni ocisceni skup:", df_clean.shape)
 df_clean.to_csv('open_food_facts_clean.csv', index=False)
 print("Sacuvano: open_food_facts_clean.csv")
-#%%
-print("df kolone:")
-print(df.columns.tolist())
 
-print("\ndf_clean kolone:")
-print(df_clean.columns.tolist())
 #%%
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
