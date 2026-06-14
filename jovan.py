@@ -34,10 +34,11 @@ nutrient_cols = [
     'proteins_100g', 'salt_100g'
 ]
 valid_grades = ['a', 'b', 'c', 'd', 'e']
+before=0
 for chunk in reader:
     steps_reader = steps_reader + 1
     print("broj_prolaza",steps_reader)
-    
+    before += len(chunk)
     chunk = chunk.dropna(subset=['nutriscore_grade', 'nova_group'] + nutrient_cols)
     
     chunk = chunk[chunk['nutriscore_grade'].str.lower().isin(valid_grades)]
@@ -49,6 +50,10 @@ for chunk in reader:
 
 df = pd.concat(chunks, ignore_index=True)
 df.drop_duplicates(subset='code', inplace=True)
+
+for col in nutrient_cols:
+    df[col] = pd.to_numeric(df[col], errors='coerce')
+df = df.dropna(subset=['nutriscore_grade', 'nova_group'] + nutrient_cols)
 for col in nutrient_cols:
     if col == 'energy-kcal_100g':
         df = df[(df[col] >= 0) & (df[col] <= 900)]
@@ -65,6 +70,7 @@ df = df[df['sugars_100g'] <= df['carbohydrates_100g']]
 macro_cols = ['fat_100g', 'carbohydrates_100g', 'proteins_100g', 'salt_100g', 'fiber_100g']
 
 df = df[df[macro_cols].sum(axis=1) <= 100]
+print("Pre ciscenja:", before)
 print("Nakon ciscenja:", df.shape)
 
 
@@ -75,28 +81,26 @@ df['nutriscore_encoded'] = df['nutriscore_grade'].map(grade_map)
 
 df['nova_group_encoded'] = df['nova_group']
 
-print(df[['nutriscore_grade', 'nutriscore_encoded', 'nova_group', 'nova_group_encoded']].head(5))
 
 #%%
 df['additives_n'] = df['additives_n'].fillna(0).astype(int)
 df['sugar_fiber_ratio'] = df['sugars_100g'] / (df['fiber_100g'] + 0.01)
 df['fat_protein_ratio'] = df['fat_100g'] / (df['proteins_100g'] + 0.01)
 
-# zamena inf vrednosti sa NaN pa medijanom - sprečava greške u LOF
 df['sugar_fiber_ratio'] = df['sugar_fiber_ratio'].replace([np.inf, -np.inf], np.nan)
 df['fat_protein_ratio'] = df['fat_protein_ratio'].replace([np.inf, -np.inf], np.nan)
 df['sugar_fiber_ratio'] = df['sugar_fiber_ratio'].fillna(df['sugar_fiber_ratio'].median())
 df['fat_protein_ratio'] = df['fat_protein_ratio'].fillna(df['fat_protein_ratio'].median())
 
-print("=== sugar_fiber_ratio ===")
+print("sugar_fiber_ratio")
 print(df['sugar_fiber_ratio'].describe())
 print(df['sugar_fiber_ratio'].quantile([0.90, 0.95, 0.99]))
 
-print("\n=== fat_protein_ratio ===")
+print("\nfat_protein_ratio")
 print(df['fat_protein_ratio'].describe())
 print(df['fat_protein_ratio'].quantile([0.90, 0.95, 0.99]))
 
-# clip both at 99th percentile
+
 sugar_cap = df['sugar_fiber_ratio'].quantile(0.95)
 fat_cap = df['fat_protein_ratio'].quantile(0.95)
 
@@ -115,7 +119,7 @@ features_anomaly = [
     'sugars_100g', 'fiber_100g', 'proteins_100g', 'salt_100g',
     'additives_n','fat_protein_ratio','sugar_fiber_ratio'
 ]
-#'fat_protein_ratio','sugar_fiber_ratio'
+
 X_anom = df[features_anomaly].copy()
 X_anom = X_anom.fillna(X_anom.median())
 
@@ -163,10 +167,10 @@ for col, label in [('iso_anomaly', 'Isolation Forest'), ('lof_anomaly', 'LOF')]:
         print(diff.reindex(diff.abs().sort_values(ascending=False).index).head(5))
 
 df['both_anomaly'] = (df['iso_anomaly'] == -1) & (df['lof_anomaly'] == -1)
-print(f"\n=== Oba modela se slažu: {df['both_anomaly'].sum()} proizvoda ===")
+print(f"\nOba modela se slažu: {df['both_anomaly'].sum()} proizvoda")
 print(df[df['both_anomaly']].groupby('nutriscore_grade').size().rename('broj'))
 
-print("\n=== Prosečna nova_group: anomalije vs normalni po nutriscore oceni ===")
+print("\nProsečna nova_group: anomalije vs normalni po nutriscore oceni")
 for col, label in [('iso_anomaly', 'Isolation Forest'), ('lof_anomaly', 'LOF')]:
     print(f"\n{label}:")
     df['anomaly_label'] = df[col].map({1: 'Normalni', -1: 'Anomalija'})
@@ -194,11 +198,24 @@ for col, score_col, label in [('iso_anomaly', 'iso_score', 'Isolation Forest'), 
         print(f"\nOcena {grade.upper()}:")
         print(sample.to_string())
 #%%
-df_clean = df[~((df['iso_anomaly'] == -1) & (df['lof_anomaly'] == -1))].copy()
+final_cols = [
+    'code', 'created_datetime', 'last_modified_datetime', 'product_name', 'brands',
+    'categories_en', 'countries_en', 'additives_n', 'nutriscore_grade', 'nova_group',
+    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g', 'carbohydrates_100g',
+    'sugars_100g', 'fiber_100g', 'proteins_100g', 'salt_100g',
+    'nutriscore_encoded', 'nova_group_encoded', 'sugar_fiber_ratio', 'fat_protein_ratio'
+]
+df_clean = df[~((df['iso_anomaly'] == -1) & (df['lof_anomaly'] == -1))][final_cols].copy()
 print(len(df_clean))
 print("Finalni ocisceni skup:", df_clean.shape)
 df_clean.to_csv('open_food_facts_clean.csv', index=False)
 print("Sacuvano: open_food_facts_clean.csv")
+#%%
+print("df kolone:")
+print(df.columns.tolist())
+
+print("\ndf_clean kolone:")
+print(df_clean.columns.tolist())
 #%%
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
