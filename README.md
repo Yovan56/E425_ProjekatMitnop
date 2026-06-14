@@ -2,18 +2,19 @@
 #Idi te na sledeci link da bi skinuli potrebne podatke:  
 https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz  
 
-#u terminalu uraditi( ili skinuti direktno zip sa githuba)  
+#u terminalu uraditi( ili skinuti direktno zip sa githuba):   
 git clone https://github.com/Yovan56/E425_ProjekatMitnop.git  
 
-#onda  
-#ako ste skinilu preko zipa kad ga unzipujete samo udji te u unziped folder i preimenujte folder #unutra u E425_ProjekatMitnop-main umesto E425_ProjekatMitnop  
+ 
+#ako ste skinuli preko zipa. kad ga unzipujete samo udjite u unziped folder i preimenujte folder #unutra u E425_ProjekatMitnop-main umesto E425_ProjekatMitnop:  
 py -m venv E425_ProjekatMitnop  
 
-#premesti te se u folder  
-cd E425_ProjekatMitnop  
-#staviti u ovaj folder en.openfoodfacts.org.products.csv.gz fajl koji ste skinuli gde se nalaze ostali .py  
+#premestite se u folder:  
+cd E425_ProjekatMitnop
 
-#onda  
+#staviti u ovaj folder en.openfoodfacts.org.products.csv.gz fajl koji ste skinuli gde se nalaze ostali .py    
+
+#onda:    
 ./Scripts/Activate.ps1  
 pip install -r requirements.txt  
 spyder
