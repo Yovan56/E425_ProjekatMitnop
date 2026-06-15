@@ -1,5 +1,5 @@
 # ProjekatMitnop  
-#Idi te na sledeci link da bi skinuli potrebne podatke  
+#Idite na sledeci link da bi skinuli potrebne podatke  
 https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz  
 
 #Ako ste preko zipa  
